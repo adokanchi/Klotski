@@ -76,6 +76,35 @@ public class Board {
         if (dir == 'r' && piece.touchingRight()) return false;
 
         int oldMask = piece.getLocation();
+        int newMask;
+
+        if (dir == 'u') newMask = oldMask << 4;
+        else if (dir == 'd') newMask = oldMask >> 4;
+        else if (dir == 'l') newMask = oldMask << 1;
+        else newMask = oldMask >> 1;
+
+
+        // If the position would be taken, return false
+        int otherPiecesBoard = bitboard & ~oldMask;
+        if ((newMask & otherPiecesBoard) != 0) return false;
+
+        piece.move(newMask);
+        syncBitboard();
+        return true;
+    }
+
+    public boolean movePiece(Piece piece, char dir) {
+        // Input validation
+        if (!pieces.contains(piece)) return false;
+        if (dir != 'u' && dir != 'd' && dir != 'l' && dir != 'r') return false;
+
+        // Don't move outside board or wrap around
+        if (dir == 'u' && piece.touchingTop()) return false;
+        if (dir == 'd' && piece.touchingBottom()) return false;
+        if (dir == 'l' && piece.touchingLeft()) return false;
+        if (dir == 'r' && piece.touchingRight()) return false;
+
+        int oldMask = piece.getLocation();
         int newMask = 0;
 
         if (dir == 'u') newMask = oldMask << 4;
@@ -88,8 +117,7 @@ public class Board {
         int otherPiecesBoard = bitboard & ~oldMask;
         if ((newMask & otherPiecesBoard) != 0) return false;
 
-        pieces.remove(pieceIdx);
-        pieces.add(pieceIdx, new Piece(newMask));
+        piece.move(newMask);
         syncBitboard();
         return true;
     }

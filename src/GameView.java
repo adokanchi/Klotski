@@ -12,10 +12,8 @@ public class GameView extends JFrame {
     public static final int BOARD_HEIGHT = 5 * CELL_SIZE;
 
     public static final int BOARD_LEFT_X = (WINDOW_WIDTH - BOARD_WIDTH) / 2;
-    public static final int BOARD_RIGHT_X = (WINDOW_WIDTH + BOARD_WIDTH) / 2;
 
     public static final int BOARD_TOP_Y = (WINDOW_HEIGHT - BOARD_HEIGHT) / 2;
-    public static final int BOARD_BOTTOM_Y = (WINDOW_HEIGHT + BOARD_HEIGHT) / 2;
 
     public static final Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW,
                                           Color.GREEN, Color.BLUE, Color.PINK,

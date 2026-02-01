@@ -12,6 +12,10 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         return board;
     }
 
+    public int getMoveCount() {
+        return moveCount;
+    }
+
     public void runGame() {
         window = new GameView(this);
         this.window.addMouseListener(this);
@@ -96,6 +100,8 @@ public class Game implements MouseListener, KeyListener, ActionListener {
                 moveCount++;
             }
         }
+
+        window.repaint();
     }
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}

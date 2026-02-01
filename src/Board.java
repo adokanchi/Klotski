@@ -41,15 +41,9 @@ public class Board {
         return bitboard;
     }
 
-    public void setBoard(int bitboard) {
-        this.bitboard = bitboard;
-    }
-
     public void addPiece(Piece piece) {
-        int mask = piece.getLocation();
-        assert ((bitboard & mask) == 0) : "Attempting to add piece to occupied location";
         pieces.add(piece);
-        bitboard |= mask;
+        bitboard |= piece.getLocation();
     }
 
     public void removePiece(Piece piece) {
@@ -120,10 +114,6 @@ public class Board {
         piece.move(newMask);
         syncBitboard();
         return true;
-    }
-
-    public boolean occupied(int mask) {
-        return ((bitboard & mask) != 0);
     }
 
     public void syncBitboard() {

@@ -64,8 +64,15 @@ public class GameView extends JFrame {
         g.fillRect(topleftX + OUTLINE_WIDTH, topleftY + OUTLINE_WIDTH, CELL_SIZE - 2 * OUTLINE_WIDTH, CELL_SIZE - 2 * OUTLINE_WIDTH);
     }
 
+    public void drawMoveCountText(Graphics g) {
+        g.setColor(Color.BLACK);
+        String moveCountText = "Move Count: " + game.getMoveCount();
+        g.drawString(moveCountText, 50, 50);
+    }
+
     public void paint(Graphics g) {
         clearWindow(g);
         drawBoard(g);
+        drawMoveCountText(g);
     }
 }

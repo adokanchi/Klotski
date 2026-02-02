@@ -45,6 +45,7 @@ public class GameView extends JFrame {
                 for (int i = 0; i < pieces.size(); i++) {
                     if ((cellMask & pieces.get(i).getLocation()) != 0) {
                         color = colors[i];
+                        break;
                     }
                 }
                 drawCell(g, BOARD_LEFT_X + CELL_SIZE * col, BOARD_TOP_Y + CELL_SIZE * row, color);

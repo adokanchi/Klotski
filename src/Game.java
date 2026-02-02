@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Scanner;
 
 public class Game implements MouseListener, KeyListener, ActionListener {
     private GameView window;
@@ -38,7 +37,11 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         int row = (y - GameView.BOARD_TOP_Y) / GameView.CELL_SIZE;
         int col = (x - GameView.BOARD_LEFT_X) / GameView.CELL_SIZE;
 
-        if (row < 0 || col < 0 || row > 5 || col > 4) selectedPiece = null;
+        if (row < 0 || col < 0 || row >= 5 || col >= 4) {
+            selectedPiece = null;
+            window.repaint();
+            return;
+        }
 
         int cellNum = 19 - (row * 4 + col);
         int cellMask = 1 << cellNum;

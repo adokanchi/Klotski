@@ -5,23 +5,23 @@ public class Board {
     private ArrayList<Piece> pieces;
 
     public static final int FIRST_COL_MASK =  0b1000_1000_1000_1000_1000;
-    public static final int SECOND_COL_MASK = 0b0100_0100_0100_0100_0100;
-    public static final int THIRD_COL_MASK =  0b0010_0010_0010_0010_0010;
     public static final int FOURTH_COL_MASK = 0b0001_0001_0001_0001_0001;
-    public static final int[] cols = {FIRST_COL_MASK, SECOND_COL_MASK, THIRD_COL_MASK, FOURTH_COL_MASK};
 
     public static final int FIRST_ROW_MASK =  0b1111_0000_0000_0000_0000;
-    public static final int SECOND_ROW_MASK = 0b0000_1111_0000_0000_0000;
-    public static final int THIRD_ROW_MASK =  0b0000_0000_1111_0000_0000;
-    public static final int FOURTH_ROW_MASK = 0b0000_0000_0000_1111_0000;
     public static final int FIFTH_ROW_MASK =  0b0000_0000_0000_0000_1111;
-    public static final int[] rows = {FIRST_ROW_MASK, SECOND_ROW_MASK, THIRD_ROW_MASK, FOURTH_ROW_MASK, FIFTH_ROW_MASK};
-
 
     public Board() {
         bitboard = 0;
         pieces = new ArrayList<Piece>();
         initPieces();
+    }
+
+    public Board(Board other) {
+        bitboard = other.getBitboard();
+        pieces = new ArrayList<Piece>();
+        for (Piece piece : other.getPieces()) {
+            pieces.add(new Piece(piece));
+        }
     }
 
     public void initPieces() {
@@ -53,40 +53,6 @@ public class Board {
         return pieces;
     }
 
-    public boolean movePiece(char pieceChar, char dir) {
-        int pieceIdx = pieceChar - 'a';
-
-        // Input validation
-        if (pieceIdx < 0 || pieceIdx >= pieces.size()) return false;
-        if (dir != 'u' && dir != 'd' && dir != 'l' && dir != 'r') return false;
-
-        Piece piece = pieces.get(pieceIdx);
-
-        // Don't move outside board or wrap around
-        if (dir == 'u' && piece.touchingTop()) return false;
-        if (dir == 'd' && piece.touchingBottom()) return false;
-        if (dir == 'l' && piece.touchingLeft()) return false;
-        if (dir == 'r' && piece.touchingRight()) return false;
-
-        int oldMask = piece.getLocation();
-        int newMask;
-
-        // Select direction
-        if (dir == 'u') newMask = oldMask << 4;
-        else if (dir == 'd') newMask = oldMask >> 4;
-        else if (dir == 'l') newMask = oldMask << 1;
-        else newMask = oldMask >> 1;
-
-
-        // Check if moving onto another piece
-        int otherPiecesBoard = bitboard & ~oldMask;
-        if ((newMask & otherPiecesBoard) != 0) return false;
-
-        piece.move(newMask);
-        syncBitboard();
-        return true;
-    }
-
     public boolean movePiece(Piece piece, char dir) {
         // Input validation
         if (!pieces.contains(piece)) return false;
@@ -99,19 +65,33 @@ public class Board {
         if (dir == 'r' && piece.touchingRight()) return false;
 
         int oldMask = piece.getLocation();
-        int newMask = 0;
+        int oldTopLeft = piece.getTopLeft();
+        int newMask;
+        int newTopLeft;
 
-        if (dir == 'u') newMask = oldMask << 4;
-        else if (dir == 'd') newMask = oldMask >> 4;
-        else if (dir == 'l') newMask = oldMask << 1;
-        else newMask = oldMask >> 1;
-
+        if (dir == 'u') {
+            newMask = oldMask << 4;
+            newTopLeft = oldTopLeft + 4;
+        }
+        else if (dir == 'd') {
+            newMask = oldMask >> 4;
+            newTopLeft = oldTopLeft - 4;
+        }
+        else if (dir == 'l') {
+            newMask = oldMask << 1;
+            newTopLeft = oldTopLeft + 1;
+        }
+        else {
+            newMask = oldMask >> 1;
+            newTopLeft = oldTopLeft - 1;
+        }
 
         // If the position would be taken, return false
         int otherPiecesBoard = bitboard & ~oldMask;
         if ((newMask & otherPiecesBoard) != 0) return false;
 
         piece.move(newMask);
+        piece.setTopLeft(newTopLeft);
         syncBitboard();
         return true;
     }
@@ -122,29 +102,5 @@ public class Board {
             bitboard |= piece.getLocation();
         }
     }
-
-    public void printBoard() {
-        for (int r = 0; r < 5; r++) {
-            for (int c = 0; c < 4; c++) {
-                int bitIndex = 19 - (r * 4 + c);
-                int squareMask = 1 << bitIndex;
-
-                char symbol = '·'; // default: empty
-
-                if ((bitboard & squareMask) != 0) {
-                    for (int i = 0; i < pieces.size(); i++) {
-                        if ((pieces.get(i).getLocation() & squareMask) != 0) {
-                            symbol = (char) ('a' + i);
-                            break;
-                        }
-                    }
-                }
-
-                System.out.print(symbol + " ");
-            }
-            System.out.println();
-        }
-    }
-
 
 }

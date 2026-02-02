@@ -25,16 +25,19 @@ public class Board {
     }
 
     public void initPieces() {
-        addPiece(new Piece(0b0110_0110_0000_0000_0000)); // Big square
-        addPiece(new Piece(0b1000_1000_0000_0000_0000)); // Top left vert
-        addPiece(new Piece(0b0001_0001_0000_0000_0000)); // Top right vert
-        addPiece(new Piece(0b0000_0000_1000_1000_0000)); // Left vert
-        addPiece(new Piece(0b0000_0000_0001_0001_0000)); // Right vert
-        addPiece(new Piece(0b0000_0000_0110_0000_0000)); // Horizontal
-        addPiece(new Piece(0b0000_0000_0000_0100_0000)); // Midleft single
-        addPiece(new Piece(0b0000_0000_0000_0010_0000)); // Midright single
-        addPiece(new Piece(0b0000_0000_0000_0000_1000)); // Botleft single
-        addPiece(new Piece(0b0000_0000_0000_0000_0001)); // Botright single
+        addPiece(new Piece(0b0110_0110_0000_0000_0000, Piece.TWO_BY_TWO)); // Big square
+
+        addPiece(new Piece(0b1000_1000_0000_0000_0000, Piece.TWO_BY_ONE)); // Top left vert
+        addPiece(new Piece(0b0001_0001_0000_0000_0000, Piece.TWO_BY_ONE)); // Top right vert
+        addPiece(new Piece(0b0000_0000_1000_1000_0000, Piece.TWO_BY_ONE)); // Left vert
+        addPiece(new Piece(0b0000_0000_0001_0001_0000, Piece.TWO_BY_ONE)); // Right vert
+
+        addPiece(new Piece(0b0000_0000_0110_0000_0000, Piece.ONE_BY_TWO)); // Horizontal
+
+        addPiece(new Piece(0b0000_0000_0000_0100_0000, Piece.ONE_BY_ONE)); // Midleft single
+        addPiece(new Piece(0b0000_0000_0000_0010_0000, Piece.ONE_BY_ONE)); // Midright single
+        addPiece(new Piece(0b0000_0000_0000_0000_1000, Piece.ONE_BY_ONE)); // Botleft single
+        addPiece(new Piece(0b0000_0000_0000_0000_0001, Piece.ONE_BY_ONE)); // Botright single
     }
 
     public int getBitboard() {

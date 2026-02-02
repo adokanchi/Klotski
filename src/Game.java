@@ -8,6 +8,11 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private Piece selectedPiece;
     private int moveCount;
 
+    public Game() {
+        board = new Board();
+        moveCount = 0;
+    }
+
     public Board getBoard() {
         return board;
     }
@@ -21,9 +26,6 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         this.window.addMouseListener(this);
         this.window.addKeyListener(this);
         Toolkit.getDefaultToolkit().sync();
-
-        board = new Board();
-        moveCount = 0;
     }
 
     public void mouseClicked(MouseEvent e) {

@@ -46,22 +46,18 @@ public class Board {
         bitboard |= piece.getLocation();
     }
 
-    public void removePiece(Piece piece) {
-        pieces.remove(piece);
-        bitboard &= ~piece.getLocation();
-    }
-
     public ArrayList<Piece> getPieces() {
         return pieces;
     }
 
     public boolean movePiece(char pieceChar, char dir) {
         int pieceIdx = pieceChar - 'a';
-        Piece piece = pieces.get(pieceIdx);
 
         // Input validation
         if (pieceIdx < 0 || pieceIdx >= pieces.size()) return false;
         if (dir != 'u' && dir != 'd' && dir != 'l' && dir != 'r') return false;
+
+        Piece piece = pieces.get(pieceIdx);
 
         // Don't move outside board or wrap around
         if (dir == 'u' && piece.touchingTop()) return false;
@@ -72,13 +68,14 @@ public class Board {
         int oldMask = piece.getLocation();
         int newMask;
 
+        // Select direction
         if (dir == 'u') newMask = oldMask << 4;
         else if (dir == 'd') newMask = oldMask >> 4;
         else if (dir == 'l') newMask = oldMask << 1;
         else newMask = oldMask >> 1;
 
 
-        // If the position would be taken, return false
+        // Check if moving onto another piece
         int otherPiecesBoard = bitboard & ~oldMask;
         if ((newMask & otherPiecesBoard) != 0) return false;
 

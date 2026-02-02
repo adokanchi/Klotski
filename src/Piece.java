@@ -1,10 +1,6 @@
 public class Piece {
     private int bitboard;
 
-    public Piece() {
-        bitboard = 0;
-    }
-
     public Piece(int bitboard) {
         this.bitboard = bitboard;
     }

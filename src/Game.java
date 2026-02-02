@@ -22,29 +22,8 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         this.window.addKeyListener(this);
         Toolkit.getDefaultToolkit().sync();
 
-        runGameLoop();
-    }
-
-    public void runGameLoop() {
         board = new Board();
-        Scanner input = new Scanner(System.in);
         moveCount = 0;
-        while (true) {
-            for (int i = 0; i < 10; i++) System.out.println(); // Clear screen
-            System.out.println("Moves: " + moveCount);
-            board.printBoard();
-            window.repaint();
-            System.out.print("Piece to move: ");
-            String in = input.nextLine();
-            char pieceChar = in.isEmpty() ? ' ' : in.charAt(0);
-
-            System.out.println("Direction to move: (u/d/l/r): ");
-            in = input.nextLine();
-            char dir = in.isEmpty() ? 'u' : in.charAt(0);
-
-            // Move piece
-            if (board.movePiece(pieceChar, dir)) moveCount++;
-        }
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -61,7 +40,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
 
         int cellNum = 19 - (row * 4 + col);
         int cellMask = 1 << cellNum;
-        if ((cellMask & board.getBitboard()) != 0) {
+        if ((cellMask & board.getBitboard()) != 0) { // Clicked a piece
             Piece clickedPiece = null;
             for (Piece piece : board.getPieces()) {
                 if ((cellMask & piece.getLocation()) != 0) {
@@ -69,16 +48,19 @@ public class Game implements MouseListener, KeyListener, ActionListener {
                     break;
                 }
             }
-            if (selectedPiece == clickedPiece) {
-                selectedPiece = null;
-            }
-            else {
+//            Uncomment to allow clicking a selected piece to deselect it
+//            if (selectedPiece == clickedPiece) {
+//                selectedPiece = null;
+//            }
+//            else {
                 selectedPiece = clickedPiece;
-            }
+//            }
         }
-        else {
+        else { // Clicked empty space
+            // If nothing selected, do nothing
             if (selectedPiece == null) return;
 
+            // Otherwise, attempt to move a piece or deselect
             char dir;
             if (!selectedPiece.touchingLeft() && ((cellMask >> 1) & selectedPiece.getLocation()) != 0) {
                 dir = 'l';
@@ -93,6 +75,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
                 dir = 'd';
             }
             else {
+                selectedPiece = null;
                 return;
             }
 

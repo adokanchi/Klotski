@@ -37,14 +37,13 @@ public class GameView extends JFrame {
         if (game == null) return;
         if (game.getBoard() == null) return;
 
+        ArrayList<Piece> pieces = game.getBoard().getPieces();
         for (int row = 0; row < 5; row++) {
             for (int col = 0; col < 4; col++) {
                 int cellMask = 1 << (19 - (4 * row + col));
                 Color color = Color.WHITE;
-                ArrayList<Piece> pieces = game.getBoard().getPieces();
                 for (int i = 0; i < pieces.size(); i++) {
-                    int pieceMask = pieces.get(i).getLocation();
-                    if ((cellMask & pieceMask) != 0) {
+                    if ((cellMask & pieces.get(i).getLocation()) != 0) {
                         color = colors[i];
                     }
                 }

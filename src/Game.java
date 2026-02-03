@@ -41,7 +41,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         window = new GameView(this);
         this.window.addMouseListener(this);
         this.window.addKeyListener(this);
-        clock = new Timer(100, this);
+        clock = new Timer(333, this);
         Toolkit.getDefaultToolkit().sync();
     }
 

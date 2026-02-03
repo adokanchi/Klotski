@@ -43,7 +43,6 @@ public class StateEncoder {
 
     private static long packList(long key, ArrayList<Integer> topLefts) {
         for (int cellNum : topLefts) {
-            if (cellNum < 0 || cellNum > 19) throw new IllegalArgumentException("Bad cellNum: " + cellNum);
             key = (key << 5) | (long) cellNum;
         }
         return key;

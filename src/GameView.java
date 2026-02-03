@@ -47,7 +47,6 @@ public class GameView extends JFrame {
         }
 
         this.setVisible(true);
-
     }
 
     public void clearWindow(Graphics g) {
@@ -104,6 +103,10 @@ public class GameView extends JFrame {
 
         final int IMG_WIDTH = 400;
         final int IMG_HEIGHT = 500;
+
+        g.drawString("Donkey", 280, 75);
+        g.drawString("Pennant", 875, 75);
+
         g.drawImage(donkeyPuzzleImage, 100, 100, IMG_WIDTH, IMG_HEIGHT, null);
         g.drawImage(pennantPuzzleImage, WINDOW_WIDTH - 100 - IMG_WIDTH, 100, IMG_WIDTH, IMG_HEIGHT, null);
     }

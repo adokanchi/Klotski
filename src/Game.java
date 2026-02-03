@@ -6,6 +6,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private Board board;
     private Piece selectedPiece;
     private int moveCount;
+    private static final int GOAL_SQUARE = 6;
 
     public Game() {
         board = new Board();
@@ -19,6 +20,16 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     public int getMoveCount() {
         return moveCount;
     }
+
+    private static boolean isGoal(Board b) {
+        for (Piece p : b.getPieces()) {
+            if (p.getType() == Piece.TWO_BY_TWO) {
+                return p.getTopLeft() == GOAL_SQUARE;
+            }
+        }
+        throw new IllegalStateException("No 2x2 piece found.");
+    }
+
 
     public void runGame() {
         window = new GameView(this);

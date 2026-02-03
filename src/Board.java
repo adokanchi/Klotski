@@ -13,7 +13,7 @@ public class Board {
     public Board() {
         bitboard = 0;
         pieces = new ArrayList<>();
-        initPieces();
+        initPiecesDonkey();
     }
 
     public Board(Board other) {
@@ -24,7 +24,13 @@ public class Board {
         }
     }
 
-    public void initPieces() {
+    private void clear() {
+        pieces.clear();
+        bitboard = 0;
+    }
+
+    public void initPiecesDonkey() {
+        clear();
         addPiece(new Piece(0b0110_0110_0000_0000_0000, Piece.TWO_BY_TWO)); // Big square
 
         addPiece(new Piece(0b1000_1000_0000_0000_0000, Piece.TWO_BY_ONE)); // Top left vert
@@ -38,6 +44,22 @@ public class Board {
         addPiece(new Piece(0b0000_0000_0000_0010_0000, Piece.ONE_BY_ONE)); // Midright single
         addPiece(new Piece(0b0000_0000_0000_0000_1000, Piece.ONE_BY_ONE)); // Botleft single
         addPiece(new Piece(0b0000_0000_0000_0000_0001, Piece.ONE_BY_ONE)); // Botright single
+    }
+
+    public void initPiecesPennant() {
+        clear();
+        addPiece(new Piece(0b1100_1100_0000_0000_0000, Piece.TWO_BY_TWO)); // Big square
+
+        addPiece(new Piece(0b0000_0000_0000_1000_1000, Piece.TWO_BY_ONE));
+        addPiece(new Piece(0b0000_0000_0000_0100_0100, Piece.TWO_BY_ONE));
+
+        addPiece(new Piece(0b0011_0000_0000_0000_0000, Piece.ONE_BY_TWO));
+        addPiece(new Piece(0b0000_0011_0000_0000_0000, Piece.ONE_BY_TWO));
+        addPiece(new Piece(0b0000_0000_0000_0011_0000, Piece.ONE_BY_TWO));
+        addPiece(new Piece(0b0000_0000_0000_0000_0011, Piece.ONE_BY_TWO));
+
+        addPiece(new Piece(0b0000_0000_1000_0000_0000, Piece.ONE_BY_ONE));
+        addPiece(new Piece(0b0000_0000_0100_0000_0000, Piece.ONE_BY_ONE));
     }
 
     public int getBitboard() {

@@ -4,17 +4,18 @@ import java.util.Collections;
 
 public class BFS {
     private final LongVisitedSet visited;
-    private static final int GOAL_SQUARE = 6;
+    private final int goalSquare;
     private static final char[] DIRS = {'u','d','l','r'};
 
-    public BFS(int expectedStates) {
+    public BFS(int expectedStates, int goalSquare) {
         visited = new LongVisitedSet(expectedStates);
+        this.goalSquare = goalSquare;
     }
 
-    private static boolean isGoal(Board b) {
+    private boolean isGoal(Board b) {
         for (Piece p : b.getPieces()) {
             if (p.getType() == Piece.TWO_BY_TWO) {
-                return p.getTopLeft() == GOAL_SQUARE;
+                return p.getTopLeft() == goalSquare;
             }
         }
         throw new IllegalStateException("No 2x2 piece found.");
@@ -104,11 +105,6 @@ public class BFS {
             this.type = type;
             this.fromTopLeft = fromTopLeft;
             this.dir = dir;
-        }
-
-        @Override
-        public String toString() {
-            return "Move{type=" + type + ", fromTopLeft=" + fromTopLeft + ", dir=" + dir + "}";
         }
     }
 
@@ -224,35 +220,6 @@ public class BFS {
             z *= 0xc4ceb9fe1a85ec53L;
             z ^= (z >>> 33);
             return z;
-        }
-    }
-
-    public static void main(String[] args) {
-        Board start = new Board();
-
-        BFS bfs = new BFS(200_000);
-        ArrayList<Move> moves = bfs.solve(start);
-
-        // Console Output
-        for (int i = 0; i < moves.size(); i++) {
-            System.out.println("Move " + (i + 1));
-            String direction = "";
-            switch (moves.get(i).dir) {
-                case ('u'):
-                    direction = "up";
-                    break;
-                case ('d'):
-                    direction = "down";
-                    break;
-                case ('l'):
-                    direction = "left";
-                    break;
-                case ('r'):
-                    direction = "right";
-                    break;
-            }
-            System.out.println("Move piece occupying square " + moves.get(i).fromTopLeft + " " + direction);
-            System.out.println("~~~~~~~~~~~~~~~~");
         }
     }
 }

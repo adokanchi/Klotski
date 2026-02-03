@@ -60,5 +60,4 @@ public class Piece {
     public boolean touchingBottom() {
         return ((bitboard & Board.FIFTH_ROW_MASK) != 0);
     }
-
 }

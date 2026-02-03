@@ -11,10 +11,13 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private Timer clock;
     private ArrayList<BFS.Move> solution;
     private int solutionStep = 0;
+    public boolean selectingConfig;
+    private boolean isCurrPuzzleDonkey;
 
     public Game() {
         board = new Board();
         moveCount = 0;
+        selectingConfig = true;
     }
 
     public Board getBoard() {
@@ -38,7 +41,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         window = new GameView(this);
         this.window.addMouseListener(this);
         this.window.addKeyListener(this);
-        clock = new Timer(333, this);
+        clock = new Timer(100, this);
         Toolkit.getDefaultToolkit().sync();
     }
 
@@ -47,7 +50,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
             clock.stop();
         }
         else {
-            BFS bfs = new BFS(200_000);
+            BFS bfs = new BFS(200_000, (isCurrPuzzleDonkey ? 6 : 7));
             solution = bfs.solve(new Board(board));
             if (solution == null) {
                 System.out.println("No solution found.");
@@ -59,6 +62,21 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     }
 
     public void mouseClicked(MouseEvent e) {
+        if (selectingConfig) {
+            if (e.getX() < GameView.WINDOW_WIDTH / 2) {
+                board.initPiecesDonkey();
+                isCurrPuzzleDonkey = true;
+            }
+            else {
+                board.initPiecesPennant();
+                isCurrPuzzleDonkey = false;
+            }
+            selectingConfig = false;
+            window.repaint();
+            return;
+        }
+
+
         if (board == null) return;
         if (window == null) return;
 
@@ -134,14 +152,17 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         if (e.getKeyCode() == KeyEvent.VK_P) { // press P to pause/resume
             toggleAutoplay();
         }
-        if (e.getKeyCode() == KeyEvent.VK_R) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            clock.stop();
             board = new Board();
             moveCount = 0;
+            selectingConfig = true;
             window.repaint();
         }
     }
 
     public void actionPerformed(ActionEvent e) {
+        if (board == null) return;
         if (solution == null) return;
 
         if (solutionStep >= solution.size()) {

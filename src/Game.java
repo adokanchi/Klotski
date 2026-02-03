@@ -41,7 +41,8 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         window = new GameView(this);
         this.window.addMouseListener(this);
         this.window.addKeyListener(this);
-        clock = new Timer(333, this);
+        final int ANIM_DELAY = 333;
+        clock = new Timer(ANIM_DELAY, this);
         Toolkit.getDefaultToolkit().sync();
     }
 
@@ -149,8 +150,18 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_P) { // press P to pause/resume
+        if (e.getKeyCode() == KeyEvent.VK_P) {
             toggleAutoplay();
+        }
+        if (e.getKeyCode() == KeyEvent.VK_R) {
+            if (isCurrPuzzleDonkey) {
+                board.initPiecesDonkey();
+            }
+            else {
+                board.initPiecesPennant();
+            }
+            moveCount = 0;
+            window.repaint();
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             clock.stop();

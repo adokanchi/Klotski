@@ -93,8 +93,9 @@ public class GameView extends JFrame {
     }
 
     public void drawControlsText(Graphics g) {
-        g.drawString("Press p to pause/play solution", 50, 150);
-        g.drawString("Press esc to return to board selection", 50, 200);
+        g.drawString("Press p to pause/play solution", 50, 200);
+        g.drawString("Press r to reset board", 50, 250);
+        g.drawString("Press esc to return to board selection", 50, 300);
     }
 
     public void drawSelectingConfig(Graphics g) {

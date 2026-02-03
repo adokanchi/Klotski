@@ -67,12 +67,18 @@ public class GameView extends JFrame {
     public void drawMoveCountText(Graphics g) {
         g.setColor(Color.BLACK);
         String moveCountText = "Move Count: " + game.getMoveCount();
-        g.drawString(moveCountText, 50, 50);
+        g.drawString(moveCountText, 50, 100);
+    }
+
+    public void drawControlsText(Graphics g) {
+        g.drawString("Press p to pause/play solution", 50, 150);
+        g.drawString("Press r to reset", 50, 200);
     }
 
     public void paint(Graphics g) {
         clearWindow(g);
         drawBoard(g);
         drawMoveCountText(g);
+        drawControlsText(g);
     }
 }

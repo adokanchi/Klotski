@@ -1,12 +1,16 @@
 import java.awt.*;
 import java.awt.event.*;
+import javax.swing.Timer;
+import java.util.ArrayList;
 
 public class Game implements MouseListener, KeyListener, ActionListener {
     private GameView window;
     private Board board;
     private Piece selectedPiece;
     private int moveCount;
-    private static final int GOAL_SQUARE = 6;
+    private Timer clock;
+    private ArrayList<BFS.Move> solution;
+    private int solutionStep = 0;
 
     public Game() {
         board = new Board();
@@ -21,26 +25,44 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         return moveCount;
     }
 
-    private static boolean isGoal(Board b) {
-        for (Piece p : b.getPieces()) {
-            if (p.getType() == Piece.TWO_BY_TWO) {
-                return p.getTopLeft() == GOAL_SQUARE;
+    private boolean applyMove(Board board, BFS.Move m) {
+        for (Piece p : board.getPieces()) {
+            if (p.getType() == m.type && p.getTopLeft() == m.fromTopLeft) {
+                return board.movePiece(p, m.dir);
             }
         }
-        throw new IllegalStateException("No 2x2 piece found.");
+        return false;
     }
-
 
     public void runGame() {
         window = new GameView(this);
         this.window.addMouseListener(this);
         this.window.addKeyListener(this);
+        clock = new Timer(333, this);
         Toolkit.getDefaultToolkit().sync();
+    }
+
+    private void toggleAutoplay() {
+        if (clock.isRunning()) {
+            clock.stop();
+        }
+        else {
+            BFS bfs = new BFS(200_000);
+            solution = bfs.solve(new Board(board));
+            if (solution == null) {
+                System.out.println("No solution found.");
+                return;
+            }
+            solutionStep = 0;
+            clock.start();
+        }
     }
 
     public void mouseClicked(MouseEvent e) {
         if (board == null) return;
         if (window == null) return;
+
+        if (clock.isRunning()) return;
 
         int x = e.getX();
         int y = e.getY();
@@ -108,10 +130,38 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     public void mouseExited(MouseEvent e) {}
     public void keyTyped(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
-    public void keyPressed(KeyEvent e) {}
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_P) { // press P to pause/resume
+            toggleAutoplay();
+        }
+        if (e.getKeyCode() == KeyEvent.VK_R) {
+            board = new Board();
+            moveCount = 0;
+            window.repaint();
+        }
+    }
 
-    // Timer clock = new Timer(500, this);
-    public void actionPerformed(ActionEvent e) {}
+    public void actionPerformed(ActionEvent e) {
+        if (solution == null) return;
+
+        if (solutionStep >= solution.size()) {
+            clock.stop();
+            System.out.println("Finished autoplay.");
+            return;
+        }
+
+        BFS.Move m = solution.get(solutionStep);
+
+        boolean applied = applyMove(board, m);
+        if (!applied) {
+            clock.stop();
+            throw new IllegalStateException("Failed to apply move at step " + solutionStep + ": " + m);
+        }
+
+        solutionStep++;
+        moveCount++;
+        window.repaint();
+    }
 
     public static void main(String[] args) {
         Game game = new Game();

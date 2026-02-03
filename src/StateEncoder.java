@@ -3,10 +3,10 @@ import java.util.Collections;
 
 public class StateEncoder {
     public static long encodeState(ArrayList<Piece> pieces) {
-        ArrayList<Integer> a22= new ArrayList<Integer>();
-        ArrayList<Integer> a21= new ArrayList<Integer>();
-        ArrayList<Integer> a12= new ArrayList<Integer>();
-        ArrayList<Integer> a11= new ArrayList<Integer>();
+        ArrayList<Integer> a22= new ArrayList<>();
+        ArrayList<Integer> a21= new ArrayList<>();
+        ArrayList<Integer> a12= new ArrayList<>();
+        ArrayList<Integer> a11= new ArrayList<>();
 
         for (Piece piece : pieces) {
             int topLeft = piece.getTopLeft();

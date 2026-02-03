@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class Board {
     private int bitboard;
-    private ArrayList<Piece> pieces;
+    private final ArrayList<Piece> pieces;
 
     public static final int FIRST_COL_MASK =  0b1000_1000_1000_1000_1000;
     public static final int FOURTH_COL_MASK = 0b0001_0001_0001_0001_0001;
@@ -12,13 +12,13 @@ public class Board {
 
     public Board() {
         bitboard = 0;
-        pieces = new ArrayList<Piece>();
+        pieces = new ArrayList<>();
         initPieces();
     }
 
     public Board(Board other) {
         bitboard = other.getBitboard();
-        pieces = new ArrayList<Piece>();
+        pieces = new ArrayList<>();
         for (Piece piece : other.getPieces()) {
             pieces.add(new Piece(piece));
         }

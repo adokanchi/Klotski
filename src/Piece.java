@@ -1,6 +1,6 @@
 public class Piece {
     private int bitboard;
-    private int type;
+    private final int type;
     private int topLeft;
 
     public static final int TWO_BY_TWO = 0;
@@ -39,15 +39,6 @@ public class Piece {
 
     public void setTopLeft(int topLeft) {
         this.topLeft = topLeft;
-    }
-
-    public void setTopLeft() {
-        for (int i = 19; i >= 0; i--) {
-            if (((bitboard >> i) & 1) != 0) {
-                topLeft = i;
-                break;
-            }
-        }
     }
 
     public void move(int bitboard) {

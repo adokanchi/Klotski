@@ -15,7 +15,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private boolean isCurrPuzzleDonkey;
 
     public Game() {
-        board = new Board();
+//        board = new Board();
         moveCount = 0;
         selectingConfig = true;
     }
@@ -64,6 +64,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
 
     public void mouseClicked(MouseEvent e) {
         if (selectingConfig) {
+            board = new Board();
             if (e.getX() < GameView.WINDOW_WIDTH / 2) {
                 board.initPiecesDonkey();
                 isCurrPuzzleDonkey = true;
@@ -165,7 +166,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             clock.stop();
-            board = new Board();
+//            board = new Board();
             moveCount = 0;
             selectingConfig = true;
             window.repaint();

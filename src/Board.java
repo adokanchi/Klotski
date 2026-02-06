@@ -1,19 +1,28 @@
 import java.util.ArrayList;
 
 public class Board {
-    private int bitboard;
+    private long bitboard;
     private final ArrayList<Piece> pieces;
 
-    public static final int FIRST_COL_MASK =  0b1000_1000_1000_1000_1000;
-    public static final int FOURTH_COL_MASK = 0b0001_0001_0001_0001_0001;
+    public int NUM_ROWS = 4;
+    public int NUM_COLS = 5;
 
-    public static final int FIRST_ROW_MASK =  0b1111_0000_0000_0000_0000;
-    public static final int FIFTH_ROW_MASK =  0b0000_0000_0000_0000_1111;
+    public static final long FIRST_COL_MASK =  0b1000_1000_1000_1000_1000;
+    public static final long LAST_COL_MASK = 0b0001_0001_0001_0001_0001;
+
+    public static final long FIRST_ROW_MASK =  0b1111_0000_0000_0000_0000;
+    public static final long LAST_ROW_MASK =  0b0000_0000_0000_0000_1111;
 
     public Board() {
         bitboard = 0;
         pieces = new ArrayList<>();
-        initPiecesDonkey();
+    }
+
+    public Board(int rows, int cols) {
+        NUM_ROWS = rows;
+        NUM_COLS = cols;
+        bitboard = 0;
+        pieces = new ArrayList<>();
     }
 
     public Board(Board other) {
@@ -62,7 +71,7 @@ public class Board {
         addPiece(new Piece(0b0000_0000_0100_0000_0000, Piece.ONE_BY_ONE));
     }
 
-    public int getBitboard() {
+    public long getBitboard() {
         return bitboard;
     }
 
@@ -86,9 +95,9 @@ public class Board {
         if (dir == 'l' && piece.touchingLeft()) return false;
         if (dir == 'r' && piece.touchingRight()) return false;
 
-        int oldMask = piece.getLocation();
+        long oldMask = piece.getLocation();
         int oldTopLeft = piece.getTopLeft();
-        int newMask;
+        long newMask;
         int newTopLeft;
 
         if (dir == 'u') {
@@ -109,7 +118,7 @@ public class Board {
         }
 
         // If the position would be taken, return false
-        int otherPiecesBoard = bitboard & ~oldMask;
+        long otherPiecesBoard = bitboard & ~oldMask;
         if ((newMask & otherPiecesBoard) != 0) return false;
 
         piece.move(newMask);

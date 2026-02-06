@@ -1,5 +1,5 @@
 public class Piece {
-    private int bitboard;
+    private long bitboard;
     private final int type;
     private int topLeft;
 
@@ -8,7 +8,7 @@ public class Piece {
     public static final int ONE_BY_TWO = 2;
     public static final int ONE_BY_ONE = 3;
 
-    public Piece(int bitboard, int type) {
+    public Piece(long bitboard, int type) {
         this.bitboard = bitboard;
         this.type = type;
         for (int i = 19; i >= 0; i--) {
@@ -25,7 +25,7 @@ public class Piece {
         topLeft = other.getTopLeft();
     }
 
-    public int getLocation() {
+    public long getLocation() {
         return bitboard;
     }
 
@@ -41,7 +41,7 @@ public class Piece {
         this.topLeft = topLeft;
     }
 
-    public void move(int bitboard) {
+    public void move(long bitboard) {
         this.bitboard = bitboard;
     }
 
@@ -50,7 +50,7 @@ public class Piece {
     }
 
     public boolean touchingRight() {
-        return ((bitboard & Board.FOURTH_COL_MASK) != 0);
+        return ((bitboard & Board.LAST_COL_MASK) != 0);
     }
 
     public boolean touchingTop() {
@@ -58,6 +58,6 @@ public class Piece {
     }
 
     public boolean touchingBottom() {
-        return ((bitboard & Board.FIFTH_ROW_MASK) != 0);
+        return ((bitboard & Board.LAST_ROW_MASK) != 0);
     }
 }

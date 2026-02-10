@@ -15,7 +15,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private boolean isCurrPuzzleDonkey;
 
     public Game() {
-//        board = new Board();
+        board = new Board();
         moveCount = 0;
         selectingConfig = true;
     }
@@ -51,7 +51,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
             clock.stop();
         }
         else {
-            BFS bfs = new BFS(200_000, (isCurrPuzzleDonkey ? 6 : 7));
+            BFS bfs = new BFS(board);
             solution = bfs.solve(new Board(board));
             if (solution == null) {
                 System.out.println("No solution found.");
@@ -63,41 +63,64 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     }
 
     public void mouseClicked(MouseEvent e) {
+        int x = e.getX();
+        int y = e.getY();
+
         if (selectingConfig) {
-            board = new Board();
-            if (e.getX() < GameView.WINDOW_WIDTH / 2) {
+            if (x < GameView.WINDOW_WIDTH / 2 && y < GameView.WINDOW_HEIGHT / 2) {
+                board = new Board();
                 board.initPiecesDonkey();
                 isCurrPuzzleDonkey = true;
             }
-            else {
+            else if (x >= GameView.WINDOW_WIDTH / 2 && y < GameView.WINDOW_HEIGHT / 2) {
+                board = new Board();
                 board.initPiecesPennant();
                 isCurrPuzzleDonkey = false;
             }
+            else if (x < GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {
+                board = new Board(6, 6);
+            }
+            else if (x >= GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {
+                board = new Board(20, 20);
+            }
+
+            int nRows = board.getNumRows();
+            int nCols = board.getNumCols();
+
+            if (nRows <= 6 && nCols <= 6) {
+                window.CELL_SIZE = 100;
+            }
+            else {
+                window.CELL_SIZE = 600 / Math.max(nRows, nCols);
+            }
+
+            window.BOARD_WIDTH = nCols * window.CELL_SIZE;
+            window.BOARD_HEIGHT = nRows * window.CELL_SIZE;
+
+            window.BOARD_LEFT_X = (GameView.WINDOW_WIDTH - window.BOARD_WIDTH) / 2;
+            window.BOARD_TOP_Y = (GameView.WINDOW_HEIGHT - window.BOARD_HEIGHT) / 2;
+
             selectingConfig = false;
             window.repaint();
             return;
         }
-
 
         if (board == null) return;
         if (window == null) return;
 
         if (clock.isRunning()) return;
 
-        int x = e.getX();
-        int y = e.getY();
+        int row = (y - window.getBoardTopY()) / window.CELL_SIZE;
+        int col = (x - window.getBoardLeftX()) / window.CELL_SIZE;
 
-        int row = (y - GameView.BOARD_TOP_Y) / GameView.CELL_SIZE;
-        int col = (x - GameView.BOARD_LEFT_X) / GameView.CELL_SIZE;
-
-        if (row < 0 || col < 0 || row >= 5 || col >= 4) {
+        if (row < 0 || col < 0 || row >= board.getNumRows() || col >= board.getNumCols()) {
             selectedPiece = null;
             window.repaint();
             return;
         }
 
-        int cellNum = 19 - (row * 4 + col);
-        int cellMask = 1 << cellNum;
+        int cellNum = board.getNumRows() * board.getNumCols() - 1 - (row * board.getNumCols() + col);
+        long cellMask = 1L << cellNum;
         if ((cellMask & board.getBitboard()) != 0) { // Clicked a piece
             Piece clickedPiece = null;
             for (Piece piece : board.getPieces()) {
@@ -111,7 +134,7 @@ public class Game implements MouseListener, KeyListener, ActionListener {
 //                selectedPiece = null;
 //            }
 //            else {
-                selectedPiece = clickedPiece;
+            selectedPiece = clickedPiece;
 //            }
         }
         else { // Clicked empty space
@@ -120,16 +143,16 @@ public class Game implements MouseListener, KeyListener, ActionListener {
 
             // Otherwise, attempt to move a piece or deselect
             char dir;
-            if (!selectedPiece.touchingLeft() && ((cellMask >> 1) & selectedPiece.getLocation()) != 0) {
+            if (!board.isTouchingLeft(selectedPiece) && ((cellMask >>> 1) & selectedPiece.getLocation()) != 0) {
                 dir = 'l';
             }
-            else if (!selectedPiece.touchingRight() && ((cellMask << 1) & selectedPiece.getLocation()) != 0) {
+            else if (!board.isTouchingRight(selectedPiece) && ((cellMask << 1) & selectedPiece.getLocation()) != 0) {
                 dir = 'r';
             }
-            else if (!selectedPiece.touchingTop() && ((cellMask >> 4) & selectedPiece.getLocation()) != 0) {
+            else if (!board.isTouchingTop(selectedPiece) && ((cellMask >>> board.getNumCols()) & selectedPiece.getLocation()) != 0) {
                 dir = 'u';
             }
-            else if (!selectedPiece.touchingBottom() && ((cellMask << 4) & selectedPiece.getLocation()) != 0) {
+            else if (!board.isTouchingBottom(selectedPiece) && ((cellMask << board.getNumCols()) & selectedPiece.getLocation()) != 0) {
                 dir = 'd';
             }
             else {
@@ -166,7 +189,6 @@ public class Game implements MouseListener, KeyListener, ActionListener {
         }
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             clock.stop();
-//            board = new Board();
             moveCount = 0;
             selectingConfig = true;
             window.repaint();
@@ -179,7 +201,6 @@ public class Game implements MouseListener, KeyListener, ActionListener {
 
         if (solutionStep >= solution.size()) {
             clock.stop();
-            System.out.println("Finished autoplay.");
             return;
         }
 

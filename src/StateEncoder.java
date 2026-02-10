@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class StateEncoder {
-    public static long encodeState(ArrayList<Piece> pieces) {
+    public static long encodeState(ArrayList<Piece> pieces, int bitsPerCell) {
         ArrayList<Integer> a22= new ArrayList<>();
         ArrayList<Integer> a21= new ArrayList<>();
         ArrayList<Integer> a12= new ArrayList<>();
@@ -33,17 +33,17 @@ public class StateEncoder {
         Collections.sort(a11);
 
         long key = 0;
-        key = packList(key, a22);
-        key = packList(key, a21);
-        key = packList(key, a12);
-        key = packList(key, a11);
+        key = packList(key, a22, bitsPerCell);
+        key = packList(key, a21, bitsPerCell);
+        key = packList(key, a12, bitsPerCell);
+        key = packList(key, a11, bitsPerCell);
 
         return key;
     }
 
-    private static long packList(long key, ArrayList<Integer> topLefts) {
+    private static long packList(long key, ArrayList<Integer> topLefts, int bitsPerCell) {
         for (int cellNum : topLefts) {
-            key = (key << 5) | (long) cellNum;
+            key = (key << bitsPerCell) | (long) cellNum;
         }
         return key;
     }

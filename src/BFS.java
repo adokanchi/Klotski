@@ -6,10 +6,14 @@ public class BFS {
     private final LongVisitedSet visited;
     private final int goalSquare;
     private static final char[] DIRS = {'u','d','l','r'};
+    private final int NUM_ROWS;
+    private final int NUM_COLS;
 
-    public BFS(int expectedStates, int goalSquare) {
-        visited = new LongVisitedSet(expectedStates);
-        this.goalSquare = goalSquare;
+    public BFS(Board board) {
+        visited = new LongVisitedSet(200_000); // 200_000 = default num expected states. resizes if needed
+        this.goalSquare = board.getGoalSquare();
+        NUM_ROWS = board.getNumRows();
+        NUM_COLS = board.getNumCols();
     }
 
     private boolean isGoal(Board b) {
@@ -24,7 +28,8 @@ public class BFS {
     public ArrayList<Move> solve(Board start) {
         ArrayDeque<Node> q = new ArrayDeque<>();
 
-        long startKey = StateEncoder.encodeState(start.getPieces());
+        int bitsPerCell = 32 - Integer.numberOfLeadingZeros(NUM_ROWS * NUM_COLS- 1);
+        long startKey = StateEncoder.encodeState(start.getPieces(), bitsPerCell);
         visited.addIfAbsent(startKey, LongVisitedSet.ROOT_PARENT, LongVisitedSet.ROOT_MOVE);
         q.add(new Node(start, startKey));
 
@@ -32,7 +37,6 @@ public class BFS {
             Node cur = q.removeFirst();
             if (isGoal(cur.board)) return reconstructMoves(startKey, cur.key);
 
-            // Generate neighbors
             ArrayList<Piece> curPieces = cur.board.getPieces();
             for (int i = 0; i < curPieces.size(); i++) {
                 Piece p = curPieces.get(i);
@@ -45,7 +49,7 @@ public class BFS {
 
                     if (!next.movePiece(moved, dir)) continue;
 
-                    long nextKey = StateEncoder.encodeState(next.getPieces());
+                    long nextKey = StateEncoder.encodeState(next.getPieces(), bitsPerCell);
                     int moveCode = packMove(type, fromTopLeft, dir);
                     if (visited.addIfAbsent(nextKey, cur.key, moveCode)) {
                         q.addLast(new Node(next, nextKey));
@@ -79,13 +83,13 @@ public class BFS {
             case 'r' -> 3;
             default -> throw new IllegalArgumentException("Bad dir: " + dir);
         };
-        return (type & 3) | ((fromTopLeft & 31) << 2) | ((d & 3) << 7);
+        return (type & 3) | ((d & 3) << 2) | (fromTopLeft << 4);
     }
 
     private static Move unpackMove(int code) {
         int type = code & 3;
-        int fromTopLeft = (code >>> 2) & 31;
-        int d = (code >>> 7) & 3;
+        int d = (code >>> 2) & 3;
+        int fromTopLeft = code >>> 4;
         char dir = switch (d) {
             case 0 -> 'u';
             case 1 -> 'd';
@@ -129,7 +133,7 @@ public class BFS {
 
         public LongVisitedSet(int expectedSize) {
             int cap = 1;
-            while (cap < (expectedSize * 10) / 7) cap <<= 1; // ~0.7 load factor
+            while (cap < (expectedSize * 10) / 7) cap <<= 1; // 0.7 load factor
             table = new long[cap];
             parent = new long[cap];
             move = new int[cap];
@@ -139,7 +143,7 @@ public class BFS {
         /** returns true if newly added, false if already present */
         public boolean addIfAbsent(long key, long parentKey, int moveCode) {
             long stored = key + 1;
-            if (stored == 0) throw new IllegalArgumentException("Key overflow"); // basically impossible
+            if (stored == 0) throw new IllegalArgumentException("Key overflow");
 
             if (size >= resizeAt) rehash();
 

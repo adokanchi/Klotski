@@ -117,6 +117,8 @@ public class GameView extends JFrame {
 
         g.drawString("Donkey", 280, 50);
         g.drawString("Pennant", 875, 50);
+        g.drawString("6 by 6 empty", 280, WINDOW_HEIGHT - 150);
+        g.drawString("20 by 20 empty", 875, WINDOW_HEIGHT - 150);
 
         g.drawImage(donkeyPuzzleImage, 200, 75, IMG_WIDTH, IMG_HEIGHT, null);
         g.drawImage(pennantPuzzleImage, WINDOW_WIDTH - 200 - IMG_WIDTH, 75, IMG_WIDTH, IMG_HEIGHT, null);

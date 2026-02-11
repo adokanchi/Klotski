@@ -1,23 +1,52 @@
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class BFS {
-    private final LongVisitedSet visited;
+    private final Visited visited;
     private final int goalSquare;
     private static final char[] DIRS = {'u','d','l','r'};
-    private final int NUM_ROWS;
-    private final int NUM_COLS;
+    private static final int ROOT_PARENT = -1;
+    private static final int ROOT_MOVE = -1;
+
+    private final int a22Count;
+    private final int a21Count;
+    private final int a12Count;
+    private final int a11Count;
 
     public BFS(Board board) {
-        visited = new LongVisitedSet(200_000); // 200_000 = default num expected states. resizes if needed
+        visited = new Visited(200_000);
         this.goalSquare = board.getGoalSquare();
-        NUM_ROWS = board.getNumRows();
-        NUM_COLS = board.getNumCols();
+
+        int a22Count = 0;
+        int a21Count = 0;
+        int a12Count = 0;
+        int a11Count = 0;
+        for (Piece piece : board.getPieces()) {
+            switch (piece.getType()) {
+                case Piece.TWO_BY_TWO:
+                    a22Count++;
+                    break;
+                case Piece.TWO_BY_ONE:
+                    a21Count++;
+                    break;
+                case Piece.ONE_BY_TWO:
+                    a12Count++;
+                    break;
+                case Piece.ONE_BY_ONE:
+                    a11Count++;
+                    break;
+            }
+        }
+        this.a22Count = a22Count;
+        this.a21Count = a21Count;
+        this.a12Count = a12Count;
+        this.a11Count = a11Count;
     }
 
-    private boolean isGoal(Board b) {
-        for (Piece p : b.getPieces()) {
+    private boolean isGoal(Board board) {
+        for (Piece p : board.getPieces()) {
             if (p.getType() == Piece.TWO_BY_TWO) {
                 return p.getTopLeft() == goalSquare;
             }
@@ -28,47 +57,43 @@ public class BFS {
     public ArrayList<Move> solve(Board start) {
         ArrayDeque<Node> q = new ArrayDeque<>();
 
-        int bitsPerCell = 32 - Integer.numberOfLeadingZeros(NUM_ROWS * NUM_COLS- 1);
-        long startKey = StateEncoder.encodeState(start.getPieces(), bitsPerCell);
-        visited.addIfAbsent(startKey, LongVisitedSet.ROOT_PARENT, LongVisitedSet.ROOT_MOVE);
-        q.add(new Node(start, startKey));
+        BoardState startState = new BoardState(start, a22Count, a21Count, a12Count, a11Count);
+        int startSlot = visited.addIfAbsent(startState, ROOT_PARENT, ROOT_MOVE);
+
+        q.addLast(new Node(start, startSlot));
 
         while (!q.isEmpty()) {
             Node cur = q.removeFirst();
-            if (isGoal(cur.board)) return reconstructMoves(startKey, cur.key);
-
+            if (isGoal(cur.board)) return reconstructMoves(cur.slot);
             ArrayList<Piece> curPieces = cur.board.getPieces();
             for (int i = 0; i < curPieces.size(); i++) {
                 Piece p = curPieces.get(i);
                 int type = p.getType();
                 int fromTopLeft = p.getTopLeft();
-
                 for (char dir : DIRS) {
                     Board next = new Board(cur.board);
                     Piece moved = next.getPieces().get(i);
-
                     if (!next.movePiece(moved, dir)) continue;
-
-                    long nextKey = StateEncoder.encodeState(next.getPieces(), bitsPerCell);
+                    BoardState nextState = new BoardState(next, a22Count, a21Count, a12Count, a11Count);
                     int moveCode = packMove(type, fromTopLeft, dir);
-                    if (visited.addIfAbsent(nextKey, cur.key, moveCode)) {
-                        q.addLast(new Node(next, nextKey));
+                    int nextSlot = visited.addIfAbsent(nextState, cur.slot, moveCode);
+                    if (nextSlot >= 0) {
+                        q.addLast(new Node(next, nextSlot));
                     }
                 }
             }
         }
-
         return null; // no solution
     }
 
-    private ArrayList<Move> reconstructMoves(long startKey, long goalKey) {
-        ArrayList<Move> reversed = new ArrayList<>();
-        long k = goalKey;
-
-        while (k != startKey) {
-            int code = visited.getMoveCode(k);
+    private ArrayList<Move> reconstructMoves(int goalSlot) {
+        ArrayList<Move> reversed = new ArrayList<Move>();
+        int slot = goalSlot;
+        while (slot != ROOT_PARENT) {
+            int code = visited.getMoveCodeBySlot(slot);
+            if (code == ROOT_MOVE) break;
             reversed.add(unpackMove(code));
-            k = visited.getParent(k);
+            slot = visited.getParentBySlot(slot);
         }
 
         Collections.reverse(reversed);
@@ -100,6 +125,65 @@ public class BFS {
         return new Move(type, fromTopLeft, dir);
     }
 
+    public static final class BoardState {
+        private final int[] a22;
+        private final int[] a21;
+        private final int[] a12;
+        private final int[] a11;
+
+        BoardState(Board board, int a22Count, int a21Count, int a12Count, int a11Count) {
+            int[] t22 = new int[a22Count];
+            int[] t21 = new int[a21Count];
+            int[] t12 = new int[a12Count];
+            int[] t11 = new int[a11Count];
+
+            int i22 = 0;
+            int i21 = 0;
+            int i12 = 0;
+            int i11 = 0;
+            for (Piece piece : board.getPieces()) {
+                int topLeft = piece.getTopLeft();
+                switch (piece.getType()) {
+                    case Piece.TWO_BY_TWO -> t22[i22++] = topLeft;
+                    case Piece.TWO_BY_ONE -> t21[i21++] = topLeft;
+                    case Piece.ONE_BY_TWO -> t12[i12++] = topLeft;
+                    case Piece.ONE_BY_ONE -> t11[i11++] = topLeft;
+                    default -> throw new IllegalStateException("Unknown piece type");
+                }
+            }
+
+            Arrays.sort(t22);
+            Arrays.sort(t21);
+            Arrays.sort(t12);
+            Arrays.sort(t11);
+
+            this.a22 = t22;
+            this.a21 = t21;
+            this.a12 = t12;
+            this.a11 = t11;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BoardState other)) return false;
+            return (Arrays.equals(a22, other.a22)
+                    && Arrays.equals(a21, other.a21)
+                    && Arrays.equals(a12, other.a12)
+                    && Arrays.equals(a11, other.a11));
+        }
+
+        @Override
+        public int hashCode() {
+            int h = 1;
+            h = 31 * h + Arrays.hashCode(a22);
+            h = 31 * h + Arrays.hashCode(a21);
+            h = 31 * h + Arrays.hashCode(a12);
+            h = 31 * h + Arrays.hashCode(a11);
+            return h;
+        }
+    }
+
     public static final class Move {
         public final int type;
         public final int fromTopLeft;
@@ -114,116 +198,94 @@ public class BFS {
 
     public static final class Node {
         final Board board;
-        final long key;
-        Node(Board board, long key) {
+        final int slot;
+
+        Node(Board board, int slot) {
             this.board = board;
-            this.key = key;
+            this.slot = slot;
         }
     }
 
-    public static final class LongVisitedSet {
-        private long[] table;   // stores key+1; 0 = empty
-        private long[] parent;
+    public static final class Visited {
+        private BoardState[] keys;
+        private int[] parent;
         private int[] move;
         private int size;
         private int resizeAt;
 
-        private static final long ROOT_PARENT = Long.MIN_VALUE;
-        private static final int ROOT_MOVE = -1;
-
-        public LongVisitedSet(int expectedSize) {
+        public Visited(int expectedSize) {
             int cap = 1;
-            while (cap < (expectedSize * 10) / 7) cap <<= 1; // 0.7 load factor
-            table = new long[cap];
-            parent = new long[cap];
+            while (cap < (expectedSize * 10) / 7) cap <<= 1; // Load factor 0.7
+            keys = new BoardState[cap];
+            parent = new int[cap];
             move = new int[cap];
             resizeAt = (cap * 7) / 10;
         }
 
-        /** returns true if newly added, false if already present */
-        public boolean addIfAbsent(long key, long parentKey, int moveCode) {
-            long stored = key + 1;
-            if (stored == 0) throw new IllegalArgumentException("Key overflow");
-
+        public int addIfAbsent(BoardState key, int parentSlot, int moveCode) {
             if (size >= resizeAt) rehash();
 
-            int mask = table.length - 1;
-            int idx = (int) mix64(key) & mask;
+            int mask = keys.length - 1;
+            int idx = mix32(key.hashCode()) & mask;
 
             while (true) {
-                long cur = table[idx];
-                if (cur == 0) {
-                    table[idx] = stored;
-                    parent[idx] = parentKey;
+                BoardState cur = keys[idx];
+                if (cur == null) {
+                    keys[idx] = key;
+                    parent[idx] = parentSlot;
                     move[idx] = moveCode;
                     size++;
-                    return true;
+                    return idx;
                 }
-                if (cur == stored) return false;
+                if (cur.equals(key)) {
+                    return -1;
+                }
                 idx = (idx + 1) & mask;
             }
         }
 
-        int findSlot(long key) {
-            long stored = key + 1;
-            int mask = table.length - 1;
-            int idx = (int) mix64(key) & mask;
-
-            while (true) {
-                long cur = table[idx];
-                if (cur == 0) return -1;
-                if (cur == stored) return idx;
-                idx = (idx + 1) & mask;
-            }
-        }
-
-        long getParent(long key) {
-            int slot = findSlot(key);
-            if (slot < 0) throw new IllegalStateException("Key not found");
+        public int getParentBySlot(int slot) {
             return parent[slot];
         }
 
-        int getMoveCode(long key) {
-            int slot = findSlot(key);
-            if (slot < 0) throw new IllegalStateException("Key not found");
+        public int getMoveCodeBySlot(int slot) {
             return move[slot];
         }
 
         private void rehash() {
-            long[] oldTable = table;
-            long[] oldParent = parent;
+            BoardState[] oldKeys = keys;
+            int[] oldParent = parent;
             int[] oldMove = move;
 
-            table = new long[oldTable.length << 1];
-            parent = new long[table.length];
-            move = new int[table.length];
+            keys = new BoardState[oldKeys.length << 1];
+            parent = new int[keys.length];
+            move = new int[keys.length];
             size = 0;
-            resizeAt = (table.length * 7) / 10;
+            resizeAt = (keys.length * 7) / 10;
 
-            int mask = table.length - 1;
+            int mask = keys.length - 1;
 
-            for (int i = 0; i < oldTable.length; i++) {
-                long stored = oldTable[i];
-                if (stored == 0) continue;
+            for (int i = 0; i < oldKeys.length; i++) {
+                BoardState k = oldKeys[i];
+                if (k == null) continue;
 
-                long key = stored - 1;
-                int idx = (int) mix64(key) & mask;
-                while (table[idx] != 0) idx = (idx + 1) & mask;
+                int idx = mix32(k.hashCode()) & mask;
+                while (keys[idx] != null) idx = (idx + 1) & mask;
 
-                table[idx] = stored;
+                keys[idx] = k;
                 parent[idx] = oldParent[i];
                 move[idx] = oldMove[i];
                 size++;
             }
         }
 
-        private static long mix64(long z) {
-            z ^= (z >>> 33);
-            z *= 0xff51afd7ed558ccdL;
-            z ^= (z >>> 33);
-            z *= 0xc4ceb9fe1a85ec53L;
-            z ^= (z >>> 33);
-            return z;
+        private static int mix32(int h) {
+            h ^= (h >>> 16);
+            h *= 0x7feb352d;
+            h ^= (h >>> 15);
+            h *= 0x846ca68b;
+            h ^= (h >>> 16);
+            return h;
         }
     }
 }

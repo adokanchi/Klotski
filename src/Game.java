@@ -12,7 +12,11 @@ public class Game implements MouseListener, KeyListener, ActionListener {
     private ArrayList<BFS.Move> solution;
     private int solutionStep = 0;
     public boolean selectingConfig;
-    private boolean isCurrPuzzleDonkey;
+
+    private int currPuzzle;
+    private final int DONKEY = 0;
+    private final int PENNANT = 1;
+    private final int OTHER = 2;
 
     public Game() {
         board = new Board();
@@ -70,18 +74,20 @@ public class Game implements MouseListener, KeyListener, ActionListener {
             if (x < GameView.WINDOW_WIDTH / 2 && y < GameView.WINDOW_HEIGHT / 2) {
                 board = new Board();
                 board.initPiecesDonkey();
-                isCurrPuzzleDonkey = true;
+                currPuzzle = DONKEY;
             }
             else if (x >= GameView.WINDOW_WIDTH / 2 && y < GameView.WINDOW_HEIGHT / 2) {
                 board = new Board();
                 board.initPiecesPennant();
-                isCurrPuzzleDonkey = false;
+                currPuzzle = PENNANT;
             }
             else if (x < GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {
                 board = new Board(6, 6);
+                currPuzzle = OTHER;
             }
             else if (x >= GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {
                 board = new Board(20, 20);
+                currPuzzle = OTHER;
             }
 
             int nRows = board.getNumRows();
@@ -178,11 +184,14 @@ public class Game implements MouseListener, KeyListener, ActionListener {
             toggleAutoplay();
         }
         if (e.getKeyCode() == KeyEvent.VK_R) {
-            if (isCurrPuzzleDonkey) {
+            if (currPuzzle == DONKEY) {
                 board.initPiecesDonkey();
             }
-            else {
+            else if (currPuzzle == PENNANT) {
                 board.initPiecesPennant();
+            }
+            else {
+                return; // TODO: Reset functionality for puzzles other than donkey/pennant
             }
             moveCount = 0;
             window.repaint();

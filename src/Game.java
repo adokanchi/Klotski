@@ -82,7 +82,8 @@ public class Game implements MouseListener, KeyListener, ActionListener {
                 currPuzzle = PENNANT;
             }
             else if (x < GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {
-                board = new Board(6, 6);
+                board = new Board(5, 5);
+                board.initPiecesFiveByFive();
                 currPuzzle = OTHER;
             }
             else if (x >= GameView.WINDOW_WIDTH / 2 && y >= GameView.WINDOW_HEIGHT / 2) {

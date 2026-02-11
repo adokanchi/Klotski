@@ -17,9 +17,13 @@ public class GameView extends JFrame {
     public int BOARD_LEFT_X;
     public int BOARD_TOP_Y;
 
-    public static final Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW,
-            Color.GREEN, Color.BLUE, Color.PINK,
-            Color.MAGENTA, Color.CYAN, Color.GRAY, Color.DARK_GRAY};
+    public static final Color[] colors = {Color.RED, Color.ORANGE, Color.YELLOW, Color.GREEN,
+            Color.BLUE, Color.PINK, Color.MAGENTA, Color.CYAN, Color.GRAY, Color.DARK_GRAY,
+            Color.getHSBColor((float) (277.0 / 360),1,1), // Purple
+            Color.getHSBColor((float) (144.0 / 360), 1f, 0.8f), // Mild Green
+            Color.getHSBColor((float) (325.0 / 360), 1f, 1f), // Rose Pink
+            Color.getHSBColor((float) (30.0 / 360), 1f, 0.59f), // Brown
+            Color.getHSBColor((float) (220.0 / 360), 0.8f, 0.4f)}; // Dark Indigo
 
     private BufferedImage donkeyPuzzleImage;
     private BufferedImage pennantPuzzleImage;
@@ -74,13 +78,21 @@ public class GameView extends JFrame {
                 Color color = Color.WHITE;
                 for (int i = 0; i < pieces.size(); i++) {
                     if ((cellMask & pieces.get(i).getLocation()) != 0) {
-                        color = colors[i];
+                        if (i < colors.length) color = colors[i];
+                        else color = generateColor(i);
                         break;
                     }
                 }
                 drawCell(g, BOARD_LEFT_X + CELL_SIZE * col, BOARD_TOP_Y + CELL_SIZE * row, color);
             }
         }
+    }
+
+    private static Color generateColor(int i) {
+        float hue = 0.05f + (i * 0.61803398875f) % 0.95f;
+        float sat = 0.5f + (i * 0.5772156649f) % 0.2f;
+        float val = 0.9f + (i * 2.71828183f) % 0.1f;
+        return Color.getHSBColor(hue, sat, val);
     }
 
     public void drawCell(Graphics g, int topleftX, int topleftY, Color color) {
@@ -117,7 +129,7 @@ public class GameView extends JFrame {
 
         g.drawString("Donkey", 280, 50);
         g.drawString("Pennant", 875, 50);
-        g.drawString("6 by 6 empty", 280, WINDOW_HEIGHT - 150);
+        g.drawString("5 by 5 random", 280, WINDOW_HEIGHT - 150);
         g.drawString("20 by 20 empty", 875, WINDOW_HEIGHT - 150);
 
         g.drawImage(donkeyPuzzleImage, 200, 75, IMG_WIDTH, IMG_HEIGHT, null);

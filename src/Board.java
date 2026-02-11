@@ -102,6 +102,51 @@ public class Board {
         goalSquare = 7;
     }
 
+    public void initPiecesSixBySix() {
+        addPiece(new Piece(35, 2, 2, this));
+
+        addPiece(new Piece(33, 1, 2, this));
+        addPiece(new Piece(26, 1, 2, this));
+        addPiece(new Piece(9, 1, 2, this));
+        addPiece(new Piece(5, 1, 2, this));
+
+        addPiece(new Piece(23, 2, 1, this));
+        addPiece(new Piece(22, 2, 1, this));
+        addPiece(new Piece(27, 2, 1, this));
+        addPiece(new Piece(13, 2, 1, this));
+        addPiece(new Piece(6, 2, 1, this));
+
+        addPiece(new Piece(10, 1, 1, this));
+        addPiece(new Piece(31, 1, 1, this));
+        addPiece(new Piece(24, 1, 1, this));
+        addPiece(new Piece(18, 1, 1, this));
+        addPiece(new Piece(20, 1, 1, this));
+//        addPiece(new Piece());
+
+        goalSquare = 7;
+    }
+
+    public void initPiecesFiveByFive() {
+        addPiece(new Piece(24, 2, 2, this)); // 2x2
+
+        addPiece(new Piece(16, 2, 1, this)); // 2x1
+        addPiece(new Piece(14, 2, 1, this)); // 2x1
+        addPiece(new Piece(7, 2, 1, this)); // 2x1
+
+        addPiece(new Piece(22, 1, 2, this)); // 1x2
+        addPiece(new Piece(13, 1, 2, this)); // 1x2
+        addPiece(new Piece(6, 1, 2, this)); // 1x2
+
+        addPiece(new Piece(17, 1, 1, this)); // 1x1
+        addPiece(new Piece(15, 1, 1, this)); // 1x1
+        addPiece(new Piece(10, 1, 1, this)); // 1x1
+        addPiece(new Piece(8, 1, 1, this)); // 1x1
+        addPiece(new Piece(4, 1, 1, this)); // 1x1
+        addPiece(new Piece(3, 1, 1, this)); // 1x1
+
+        goalSquare = 6;
+    }
+
     public long getBitboard() {
         return bitboard;
     }

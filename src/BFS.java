@@ -58,13 +58,23 @@ public class BFS {
         ArrayDeque<Node> q = new ArrayDeque<>();
 
         BoardState startState = new BoardState(start, a22Count, a21Count, a12Count, a11Count);
-        int startSlot = visited.addIfAbsent(startState, ROOT_PARENT, ROOT_MOVE);
+        int startId = visited.addIfAbsent(startState, ROOT_PARENT, ROOT_MOVE);
 
-        q.addLast(new Node(start, startSlot));
+        q.addLast(new Node(start, startId));
 
+        int numCombsChecked = 0;
         while (!q.isEmpty()) {
+            numCombsChecked++;
+            if (numCombsChecked % 50_000 == 0) {
+                System.out.println("Num combs checked: " + (numCombsChecked / 1000) + ",000");
+                System.out.println("Current visited size: " + visited.size);
+                System.out.println("Total memory: " + Runtime.getRuntime().totalMemory());
+                System.out.println("Free memory: " + Runtime.getRuntime().freeMemory());
+                System.out.println("Max memory: " + Runtime.getRuntime().maxMemory());
+                System.out.println("~~~~~~~~~~~~");
+            }
             Node cur = q.removeFirst();
-            if (isGoal(cur.board)) return reconstructMoves(cur.slot);
+            if (isGoal(cur.board)) return reconstructMoves(cur.id);
             ArrayList<Piece> curPieces = cur.board.getPieces();
             for (int i = 0; i < curPieces.size(); i++) {
                 Piece p = curPieces.get(i);
@@ -76,9 +86,9 @@ public class BFS {
                     if (!next.movePiece(moved, dir)) continue;
                     BoardState nextState = new BoardState(next, a22Count, a21Count, a12Count, a11Count);
                     int moveCode = packMove(type, fromTopLeft, dir);
-                    int nextSlot = visited.addIfAbsent(nextState, cur.slot, moveCode);
-                    if (nextSlot >= 0) {
-                        q.addLast(new Node(next, nextSlot));
+                    int nextId = visited.addIfAbsent(nextState, cur.id, moveCode);
+                    if (nextId >= 0) {
+                        q.addLast(new Node(next, nextId));
                     }
                 }
             }
@@ -86,14 +96,14 @@ public class BFS {
         return null; // no solution
     }
 
-    private ArrayList<Move> reconstructMoves(int goalSlot) {
+    private ArrayList<Move> reconstructMoves(int goalId) {
         ArrayList<Move> reversed = new ArrayList<Move>();
-        int slot = goalSlot;
-        while (slot != ROOT_PARENT) {
-            int code = visited.getMoveCodeBySlot(slot);
+        int id = goalId;
+        while (id != ROOT_PARENT) {
+            int code = visited.getMoveCodeById(id);
             if (code == ROOT_MOVE) break;
             reversed.add(unpackMove(code));
-            slot = visited.getParentBySlot(slot);
+            id = visited.getParentById(id);
         }
 
         Collections.reverse(reversed);
@@ -198,18 +208,20 @@ public class BFS {
 
     public static final class Node {
         final Board board;
-        final int slot;
+        final int id;
 
-        Node(Board board, int slot) {
+        Node(Board board, int id) {
             this.board = board;
-            this.slot = slot;
+            this.id = id;
         }
     }
 
     public static final class Visited {
         private BoardState[] keys;
-        private int[] parent;
-        private int[] move;
+        private int[] idAtSlot;
+        private int[] parentById;    // indexed by stable id
+        private int[] moveById;      // indexed by stable id
+        private int nextId;
         private int size;
         private int resizeAt;
 
@@ -217,9 +229,14 @@ public class BFS {
             int cap = 1;
             while (cap < (expectedSize * 10) / 7) cap <<= 1; // Load factor 0.7
             keys = new BoardState[cap];
-            parent = new int[cap];
-            move = new int[cap];
+            idAtSlot = new int[cap];
             resizeAt = (cap * 7) / 10;
+
+            int idCap = Math.max(16, expectedSize + 1);
+            parentById = new int[idCap];
+            moveById = new int[idCap];
+
+            nextId = 1;
         }
 
         public int addIfAbsent(BoardState key, int parentSlot, int moveCode) {
@@ -231,11 +248,17 @@ public class BFS {
             while (true) {
                 BoardState cur = keys[idx];
                 if (cur == null) {
+                    int id = nextId++;
+                    ensureIdCapacity(id);
+
                     keys[idx] = key;
-                    parent[idx] = parentSlot;
-                    move[idx] = moveCode;
+                    idAtSlot[idx] = id;
+
+                    parentById[id] = parentSlot;
+                    moveById[id] = moveCode;
+
                     size++;
-                    return idx;
+                    return id;
                 }
                 if (cur.equals(key)) {
                     return -1;
@@ -244,37 +267,47 @@ public class BFS {
             }
         }
 
-        public int getParentBySlot(int slot) {
-            return parent[slot];
+        public int getParentById(int id) {
+            return parentById[id];
         }
 
-        public int getMoveCodeBySlot(int slot) {
-            return move[slot];
+        public int getMoveCodeById(int id) {
+            return moveById[id];
+        }
+
+        private void ensureIdCapacity(int id) {
+            if (id < parentById.length) return;
+
+            int newCap = parentById.length;
+            while (newCap <= id) newCap <<= 1;
+
+            parentById = Arrays.copyOf(parentById, newCap);
+            moveById = Arrays.copyOf(moveById, newCap);
         }
 
         private void rehash() {
             BoardState[] oldKeys = keys;
-            int[] oldParent = parent;
-            int[] oldMove = move;
+            int[] oldIdAtSlot = idAtSlot;
 
-            keys = new BoardState[oldKeys.length << 1];
-            parent = new int[keys.length];
-            move = new int[keys.length];
+            int newCap = oldKeys.length << 1;
+            keys = new BoardState[newCap];
+            idAtSlot = new int[newCap];
+
             size = 0;
             resizeAt = (keys.length * 7) / 10;
-
-            int mask = keys.length - 1;
+            int mask = newCap - 1;
 
             for (int i = 0; i < oldKeys.length; i++) {
                 BoardState k = oldKeys[i];
                 if (k == null) continue;
 
+                int id = oldIdAtSlot[i];
+
                 int idx = mix32(k.hashCode()) & mask;
                 while (keys[idx] != null) idx = (idx + 1) & mask;
 
                 keys[idx] = k;
-                parent[idx] = oldParent[i];
-                move[idx] = oldMove[i];
+                idAtSlot[idx] = id;
                 size++;
             }
         }
